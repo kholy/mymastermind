@@ -4,63 +4,70 @@ Guidance for working in this repository.
 
 ---
 
-## Part 1 — Behavioral Guidelines
+## Part 1 — How to work here
 
-Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific
-instructions as needed.
+Four habits that head off the ways coding assistants usually go wrong. Combine them with
+whatever the task itself demands.
 
-Source: [multica-ai/andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills/blob/main/CLAUDE.md)
+The four principles are adapted from
+[multica-ai/andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills/blob/main/CLAUDE.md);
+the wording here is this repository's own.
 
-**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
+**What they cost:** deliberation, at the expense of speed. On a one-line change, skip the
+ceremony and use judgment.
 
-### 1. Think Before Coding
+### 1. Understand the task before writing code
 
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
+*Guesses stay hidden. Say them out loud instead.*
 
-Before implementing:
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them — don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
+- Write down what you're taking for granted. Where you can't, ask.
+- A request that can be read two ways gets both readings raised, not one chosen quietly.
+- Noticed a shorter route? Argue for it. Disagreement is part of the job.
+- Genuinely stuck on what something means? Stop and name the specific thing that's
+  unclear. Guessing costs more than asking.
 
-### 2. Simplicity First
+### 2. Write the least code that works
 
-**Minimum code that solves the problem. Nothing speculative.**
+*Build what was asked for. Nothing on speculation.*
 
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
+- Features nobody requested don't get written.
+- One call site doesn't justify an abstraction.
+- Knobs and options are features too — they need asking for.
+- Don't guard against states that cannot occur.
+- If the 200 lines you just wrote would fit in 50, write the 50.
 
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+The check: would an experienced colleague reading this call it more machinery than the
+problem deserves? Then it is.
 
-### 3. Surgical Changes
+### 3. Change as little as possible
 
-**Touch only what you must. Clean up only your own mess.**
+*Confine edits to the task. Tidy up after yourself, nobody else.*
 
-When editing existing code:
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it — don't delete it.
+Working in code that already exists:
 
-When your changes create orphans:
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
+- Leave neighbouring code, comments, and formatting alone, however tempting.
+- Working code doesn't get refactored as a side errand.
+- Follow the conventions already there, including the ones you'd have chosen differently.
+- Spotted unrelated dead code? Say so and leave it in place.
 
-The test: Every changed line should trace directly to the user's request.
+When an edit strands something:
 
-### 4. Goal-Driven Execution
+- Delete the imports, variables, and functions *your* change orphaned.
+- Leave dead code you didn't create until someone asks for it.
 
-**Define success criteria. Loop until verified.**
+The check: point at any modified line and trace it back to what was actually requested.
 
-Transform tasks into verifiable goals:
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
+### 4. Make success checkable, then check it
 
-For multi-step tasks, state a brief plan:
+*Decide what "done" looks like first. Iterate until it's demonstrably true.*
+
+Turn instructions into things that can pass or fail:
+
+- "Add validation" becomes "tests covering the bad inputs, currently red, then green."
+- "Fix the bug" becomes "a test that reproduces it, then that test passing."
+- "Refactor X" becomes "the suite is green before, and green after."
+
+For anything multi-step, sketch the shape first:
 
 ```
 1. [Step] → verify: [check]
@@ -68,12 +75,12 @@ For multi-step tasks, state a brief plan:
 3. [Step] → verify: [check]
 ```
 
-Strong success criteria let you loop independently. Weak criteria ("make it work")
-require constant clarification.
+A sharp definition of done lets the work proceed without interruption. A vague one
+("make it work") guarantees more questions later.
 
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites
-due to overcomplication, and clarifying questions come before implementation rather than
-after mistakes.
+**Signs it's working:** diffs contain only what the task required, less gets thrown away
+for being overbuilt, and the questions arrive before the code rather than after the
+rework.
 
 ---
 

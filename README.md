@@ -39,3 +39,14 @@ React + TypeScript + Vite, Vitest for tests. No runtime dependencies.
 The solver runs in a Web Worker. At the largest configuration — 10 colors × 8 slots —
 there are 100,000,000 possible codes, so the first scan takes a few seconds; the board
 stays fully playable while it runs, and the game is instant from the third guess on.
+
+## License
+
+[MIT](LICENSE).
+
+The four working principles in [`CLAUDE.md`](CLAUDE.md) are adapted from
+[multica-ai/andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills),
+rewritten in this repository's own words.
+
+Mastermind is a trademark of its respective owner. This is an independent
+implementation of the game's public rules, with no affiliation.
