@@ -252,6 +252,10 @@ Run against `npm run dev` before calling the UI done. Each item traces to a sect
 
 **Notes**
 - [ ] The corner toggle rules a color out and brings it back.
+- [ ] A ruled-out swatch shows its ↺ badge **without hovering**, and one press restores
+      the color to full use, including its number key.
+- [ ] On a touch device the ✕ toggle is visible without hover — otherwise ruling out
+      cannot be discovered or undone there at all.
 - [ ] A ruled-out swatch is visibly spent but its number is still readable, and it is
       neither hidden nor removed from the row.
 - [ ] A ruled-out color cannot be placed by clicking it **or** by pressing its number key.

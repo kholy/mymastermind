@@ -137,9 +137,19 @@ out; pressing it again brings it back.
 - A ruled-out color cannot be placed, by click or by its number key. That is what
   "disabled" has to mean, and it is enforced in the reducer so the palette and the
   keyboard cannot disagree.
-- The toggle appears on hover and on keyboard focus, and stays visible once the color is
-  ruled out.
+- **Ruling out is always reversible, and the way back is never hidden.** Once a color is
+  ruled out its toggle becomes a ↺ that stays permanently visible — no hover required —
+  and one press restores the color. Players change their minds, and an undo you have to
+  go looking for is not an undo.
+- On a swatch that is *not* ruled out, the ✕ appears on hover and on keyboard focus, so
+  the palette stays quiet until you reach for it. **Touch devices have no hover**, so
+  under `any-hover: none` it is always visible; a hover-only affordance would simply not
+  exist on a phone.
 - Ruling a color out never touches a guess already on the board or in the draft.
+
+Ruling out every color is allowed and leads nowhere harmful: nothing can be placed, so
+nothing can be submitted, and un-ruling any color recovers immediately. It needs no
+guard.
 
 The one exception to "cannot be placed": the solver's last remaining code can still be
 loaded into the active row even if it contains a ruled-out color. The player's belief may

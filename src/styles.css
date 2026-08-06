@@ -374,10 +374,16 @@ button, select { font: inherit; color: inherit; }
   transition: opacity 120ms ease;
 }
 
-/* Revealed on approach, always reachable by keyboard. */
+/* Revealed on approach, always reachable by keyboard, and always shown once a color is
+   ruled out — that badge is the way back, so it must never need hunting for. */
 .palette__item:hover .palette__rule-out,
 .palette__rule-out:focus-visible,
 .palette__item--out .palette__rule-out { opacity: 1; }
+
+/* No hover on touch, so a hover-only affordance would simply not exist there. */
+@media (any-hover: none) {
+  .palette__rule-out { opacity: 1; }
+}
 
 .palette__item--out .palette__rule-out {
   background: var(--ink);
