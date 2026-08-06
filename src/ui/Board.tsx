@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Peg, codeLabel } from './Peg';
-import { PALETTE } from './palette';
+import { PALETTE, label, shortcut } from './palette';
 import { releaseFocus } from './focus';
-import { canSubmit } from '../game/game';
+import { canSubmit, markAt } from '../game/game';
 import type { Color, Feedback, GameState } from '../game/types';
 
 type Props = {
@@ -10,7 +10,15 @@ type Props = {
   onPlace: (slot: number, color: Color) => void;
   onClear: (slot: number) => void;
   onSubmit: () => void;
+  onCycleMark: (turn: number, slot: number) => void;
+  onToggleRuledOut: (color: Color) => void;
 };
+
+const MARK_TEXT = {
+  correct: 'for sure correct',
+  wrong: 'for sure wrong',
+  none: 'unmarked',
+} as const;
 
 /**
  * Feedback as a two-row key-peg cluster.
@@ -38,17 +46,17 @@ function FeedbackPegs({ feedback, slots }: { feedback: Feedback; slots: number }
   );
 }
 
-export function Board({ state, onPlace, onClear, onSubmit }: Props) {
-  const { config, turns, draft, status } = state;
+export function Board({
+  state, onPlace, onClear, onSubmit, onCycleMark, onToggleRuledOut,
+}: Props) {
+  const { config, turns, draft, status, notes } = state;
   const [selected, setSelected] = useState(0);
   const activeRowRef = useRef<HTMLDivElement>(null);
   const playing = status === 'playing';
   const ready = canSubmit(state);
 
-  // Reset selection when a new row opens or a new game starts.
   useEffect(() => setSelected(0), [turns.length, state.gameId]);
 
-  // Keep the row being played in view — at 20 rows the board scrolls.
   useEffect(() => {
     activeRowRef.current?.scrollIntoView({ block: 'nearest' });
   }, [turns.length]);
@@ -63,6 +71,7 @@ export function Board({ state, onPlace, onClear, onSubmit }: Props) {
   }
 
   function place(slot: number, color: Color) {
+    if (notes.ruledOut[color]) return;
     const after = [...draft];
     after[slot] = color;
     onPlace(slot, color);
@@ -137,8 +146,25 @@ export function Board({ state, onPlace, onClear, onSubmit }: Props) {
             return (
               <li key={i} className="row row--locked">
                 <span className="row__index">{i + 1}</span>
-                <span className="row__pegs" aria-label={codeLabel(turn.guess)}>
-                  {turn.guess.map((c, j) => <Peg key={j} color={c} />)}
+                <span className="row__pegs">
+                  {turn.guess.map((c, j) => {
+                    const mark = markAt(state, i, j);
+                    return (
+                      <button
+                        key={j}
+                        type="button"
+                        className="slot slot--markable"
+                        onClick={() => onCycleMark(i, j)}
+                        onMouseUp={releaseFocus}
+                        aria-label={
+                          `Guess ${i + 1}, slot ${j + 1}: color ${label(c)}, ` +
+                          `${MARK_TEXT[mark ?? 'none']}. Click to change.`
+                        }
+                      >
+                        <Peg color={c} mark={mark} />
+                      </button>
+                    );
+                  })}
                 </span>
                 <FeedbackPegs feedback={turn.feedback} slots={config.slots} />
               </li>
@@ -155,7 +181,7 @@ export function Board({ state, onPlace, onClear, onSubmit }: Props) {
                       key={j}
                       type="button"
                       className="slot"
-                      aria-label={`Slot ${j + 1}: ${c === null ? 'empty' : PALETTE[c].name}`}
+                      aria-label={`Slot ${j + 1}: ${c === null ? 'empty' : `color ${label(c)}`}`}
                       aria-current={j === selected}
                       onClick={() => clickSlot(j)}
                       onMouseUp={releaseFocus}
@@ -181,22 +207,45 @@ export function Board({ state, onPlace, onClear, onSubmit }: Props) {
         })}
       </ol>
 
+      {turns.length > 0 && playing && (
+        <p className="hint hint--marks">
+          Click a peg above to mark it <span className="chip chip--correct">✓ correct</span> or{' '}
+          <span className="chip chip--wrong">✕ wrong</span>. Your notes, not the game's.
+        </p>
+      )}
+
       {playing && (
         <div className="controls">
           <div className="palette" role="group" aria-label="Colors">
-            {PALETTE.slice(0, config.colors).map((swatch, color) => (
-              <button
-                key={swatch.letter}
-                type="button"
-                className="palette__button"
-                style={{ background: swatch.hex, color: swatch.ink }}
-                onClick={() => place(selected, color)}
-                onMouseUp={releaseFocus}
-                aria-label={`${swatch.name} — key ${color === 9 ? 0 : color + 1}`}
-              >
-                {swatch.letter}
-              </button>
-            ))}
+            {PALETTE.slice(0, config.colors).map((swatch, color) => {
+              const out = notes.ruledOut[color];
+              return (
+                <span key={color} className={`palette__item${out ? ' palette__item--out' : ''}`}>
+                  <button
+                    type="button"
+                    className="palette__button"
+                    style={{ background: swatch.hex, color: swatch.ink }}
+                    onClick={() => place(selected, color)}
+                    onMouseUp={releaseFocus}
+                    disabled={out}
+                    aria-label={`Color ${label(color)} — key ${shortcut(color)}`}
+                  >
+                    {label(color)}
+                  </button>
+                  <button
+                    type="button"
+                    className="palette__rule-out"
+                    onClick={() => onToggleRuledOut(color)}
+                    onMouseUp={releaseFocus}
+                    aria-pressed={out}
+                    aria-label={`${out ? 'Bring back' : 'Rule out'} color ${label(color)}`}
+                    title={out ? 'Bring this color back' : 'Rule this color out'}
+                  >
+                    {out ? '↺' : '✕'}
+                  </button>
+                </span>
+              );
+            })}
           </div>
 
           <button
@@ -217,3 +266,5 @@ export function Board({ state, onPlace, onClear, onSubmit }: Props) {
     </div>
   );
 }
+
+export { codeLabel };

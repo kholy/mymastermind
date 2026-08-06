@@ -23,6 +23,25 @@ export type Solver = {
   turnsCovered: number;
 };
 
+/** A player's note about one peg in a past guess. */
+export type Mark = 'correct' | 'wrong';
+
+/**
+ * The player's own deductions: colors they have ruled out, and pegs they believe are
+ * settled. Kept beside the game, never fed into it.
+ *
+ * These are beliefs and may be wrong. The solver counts possible codes from feedback
+ * alone, which is what guarantees the true secret is never eliminated — a mistaken note
+ * that filtered the candidate set could rule out the real answer and the panel would
+ * start lying. So a note that contradicts the count is information, not a bug.
+ */
+export type Notes = {
+  /** One flag per color, indexed by color. */
+  ruledOut: boolean[];
+  /** Keyed `${turnIndex}:${slotIndex}`. Absent means unmarked. */
+  marks: Record<string, Mark>;
+};
+
 export type GameState = {
   gameId: number;
   config: Config;
@@ -30,6 +49,7 @@ export type GameState = {
   secret: Code;
   turns: Turn[];
   draft: (Color | null)[];
+  notes: Notes;
   solver: Solver;
   status: Status;
 };

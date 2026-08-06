@@ -28,7 +28,7 @@ The classic Mastermind board is 6 colors × 4 slots × 10 attempts — the defau
 ### Why these bounds
 
 `colors` is capped at 10 by the palette: ten swatches is the practical limit for keeping
-colors tellable apart, and it is why every peg carries a letter (see `UI_SPEC.md`).
+colors tellable apart, and it is why every peg carries its number (see `UI_SPEC.md`).
 `attempts` is capped at 20 because a board much taller stops being readable at a glance;
 it costs nothing else.
 
@@ -125,6 +125,10 @@ solver relies on this.
 Alphabet `R G B Y`. These are the test cases; they exist to pin down the duplicate
 behavior.
 
+The letters are notation for these examples only — they read better than digits in a
+table where the columns are also numbers. The interface labels colors `1`–`10`; here
+`R G B Y` are colors 1–4, which is exactly how `feedback.test.ts` binds them.
+
 | # | Secret | Guess | exact | partial | Why |
 | --- | --- | --- | --- | --- | --- |
 | 1 | `R G B Y` | `R G B Y` | 4 | 0 | Win. |
@@ -182,5 +186,24 @@ couldn't compute themselves — it saves bookkeeping, it doesn't cheat.
 
 Reaching a count of 1 means the remaining code is provably the secret. The game does not
 auto-win at that point; the player still submits it.
+
+## Notes are not rules
+
+The player can annotate the board — rule colors out, mark pegs in past guesses as for
+sure correct or for sure wrong (see [`UI_SPEC.md`](UI_SPEC.md#the-players-notes)). These
+are **beliefs**, and beliefs can be wrong.
+
+**No annotation is ever an input to the game or to the solver.** Feedback is scored
+against the secret; possible codes are filtered by feedback alone. A note changes what is
+drawn and what the palette will let you place — nothing else.
+
+This is not fastidiousness. The solver's guarantee is that the true secret is always in
+the candidate set, and that holds precisely because every constraint applied to it came
+from real feedback. Let a mistaken note filter the set and the solver could eliminate the
+right answer while still reporting a confident count — the panel would be lying, and
+nothing on screen would look wrong.
+
+So the two can disagree, and that is a feature: a code containing a color you have ruled
+out, still listed as possible, means the evidence does not support your deduction.
 
 Implementation lives in `src/game/`, described in [`DESIGN.md`](DESIGN.md).

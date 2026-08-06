@@ -53,6 +53,15 @@ type Solver = {
   turnsCovered: number;    // the turn count this result reflects
 };
 
+/** A player's note about one peg in a past guess. */
+type Mark = 'correct' | 'wrong';
+
+/** The player's own deductions. Beliefs, not evidence — see below. */
+type Notes = {
+  ruledOut: boolean[];             // one flag per color
+  marks: Record<string, Mark>;     // keyed `${turnIndex}:${slotIndex}`
+};
+
 type GameState = {
   gameId: number;             // increments on every New game
   config: Config;             // the running game's config — never changes mid-game
@@ -60,10 +69,30 @@ type GameState = {
   secret: Code;
   turns: Turn[];              // completed guesses, oldest first
   draft: (Color | null)[];    // the active row; length === config.slots
+  notes: Notes;
   solver: Solver;
   status: Status;
 };
 ```
+
+`notes` sits in game state because it is per-game session data that must reset when a
+game does — putting it here means `newGame` clears it for free, with no second lifecycle
+to keep in step. It is nonetheless **not** part of the rules:
+
+> Nothing in `notes` is ever read by `scoreGuess`, by either scan function, or by the
+> worker. It changes what is drawn, and it stops `placeColor` accepting a ruled-out
+> color. That is all.
+
+`GAME_RULES.md` explains why that boundary carries weight: the solver's guarantee is that
+the secret is always among the candidates, and it holds only because every constraint
+applied came from real feedback. A mistaken note allowed to filter the set could eliminate
+the right answer while the count still looked authoritative. `notes never reach the
+solver` in `game.test.ts` pins this down by annotating everything and asserting the solver
+state is byte-identical.
+
+Ruling out is enforced in `placeColor` rather than by disabling the palette button, so the
+click path and the keyboard path cannot drift apart. `setDraft` deliberately does not
+check, since it carries the solver's sole remaining possibility — which outranks a belief.
 
 `solver` is a derived value kept in state because computing it is expensive and it
 arrives asynchronously — see [Solver](#solver). Note what it does *not* contain: the set
@@ -138,7 +167,8 @@ be walked without ever being built.
 ### `src/game/feedback.ts`
 
 ```ts
-scoreGuess(guess: Code, secret: ArrayLike<Color>, colors: number, counts?: Int32Array): Feedback
+scorePacked(guess: Uint8Array, secret: Uint8Array, counts: Int32Array): number
+scoreGuess(guess: ArrayLike<Color>, secret: ArrayLike<Color>, colors: number): Feedback
 ```
 
 The two-pass algorithm from `GAME_RULES.md`. This is the single definition of scoring in
@@ -262,8 +292,11 @@ newGame(state, rng?: () => number): GameState   // uses state.pendingConfig
 setPendingConfig(state, patch: Partial<Config>): GameState
 placeColor(state, slot: number, color: Color): GameState
 clearSlot(state, slot: number): GameState
+setDraft(state, code: Code): GameState          // the solver's last possibility
 submitGuess(state): GameState
-applyScan(state, result: ScanResult, turnsCovered: number, gameId: number): GameState
+toggleRuledOut(state, color: Color): GameState
+cycleMark(state, turn: number, slot: number): GameState
+applyScan(state, update, turnsCovered: number, gameId: number): GameState
 ```
 
 `newGame` increments `gameId`, copies `pendingConfig` into `config`, draws a secret, and
@@ -404,9 +437,9 @@ src/
     App.tsx           owns GameState and the worker; composes the screen
     SetupPanel.tsx    colors / slots / attempts controls + New game
     Board.tsx         all rows, feedback clusters, palette, keyboard handling
-    Peg.tsx           a colored circle with its letter
+    Peg.tsx           a colored circle with its number, plus mark / spent states
     SolverPanel.tsx   count + collapse bar + on-demand list
-    palette.ts        the 10 colors: hex, name, letter
+    palette.ts        the 10 colors: hex + ink, with label() and shortcut()
     focus.ts          releaseFocus — hands the keyboard back after a mouse click
   main.tsx
   styles.css
@@ -424,7 +457,7 @@ an object per call is an object per candidate, and it takes `Uint8Array` so the 
 call site stays monomorphic. `scoreGuess` unpacks it for game logic and tests.
 
 `Peg` is the only component with genuine reuse — locked rows, the active row, palette
-buttons, and the solver's code list all render one, and `UI_SPEC.md` makes its letter
+buttons, and the solver's code list all render one, and `UI_SPEC.md` makes its number
 load-bearing everywhere. Feedback clusters and the win/loss banner are a handful of lines
 each with one call site, so they live in `Board.tsx` and `App.tsx` rather than becoming
 files.

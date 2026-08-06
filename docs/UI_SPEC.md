@@ -81,37 +81,88 @@ still allowing correction of any position.
 
 ### Palette
 
-One button per available color, labeled with its letter. Buttons show the color swatch,
-its letter, and expose the color name to assistive tech.
+One button per available color, labeled with its number, plus a corner toggle for ruling
+it out. Each button exposes its number and its keyboard shortcut to assistive tech.
 
-| # | Name | Letter | Hex |
+| # | Label | Hex | Hue |
 | --- | --- | --- | --- |
-| 1 | Red | R | `#D7263D` |
-| 2 | Orange | O | `#F46036` |
-| 3 | Yellow | Y | `#EFCA08` |
-| 4 | Green | G | `#2E933C` |
-| 5 | Teal | T | `#0FA3B1` |
-| 6 | Blue | B | `#2D5BFF` |
-| 7 | Purple | P | `#8338EC` |
-| 8 | Magenta | M | `#E5399C` |
-| 9 | White | W | `#F2F0EC` |
-| 10 | Black | K | `#2B2B2B` |
+| 1 | `1` | `#D7263D` | red |
+| 2 | `2` | `#F46036` | orange |
+| 3 | `3` | `#EFCA08` | yellow |
+| 4 | `4` | `#2E933C` | green |
+| 5 | `5` | `#0FA3B1` | teal |
+| 6 | `6` | `#2D5BFF` | blue |
+| 7 | `7` | `#8338EC` | purple |
+| 8 | `8` | `#E5399C` | magenta |
+| 9 | `9` | `#F2F0EC` | white |
+| 10 | `10` | `#2B2B2B` | black |
 
 A config of `n` colors uses the first `n` entries, so the default 6 spans the full hue
 circle rather than clustering. Positions 9 and 10 are deliberately not hues — at ten
 swatches the hue circle is crowded, and white and black stay distinct from everything
-above them at any size. They are also the classic Mastermind extras.
+above them at any size.
 
 White needs a defined border, not just a fill: at `#F2F0EC` on an `#F7F5F2` board it
 would otherwise be nearly invisible. Give every peg the same subtle border so white
 isn't a special case in the CSS.
 
-**The letter is always rendered on every peg**, on the board and in the solver list — not
+**The number is always rendered on every peg**, on the board and in the solver list — not
 a toggle, not a preference. Ten hues cannot be made reliably distinguishable for all
 forms of color vision deficiency — red/orange and green/teal collide under common ones —
-and a color-matching game is unplayable if two colors read the same. At ten colors the
-letter stops being a helpful annotation and becomes the primary channel; the color is
-what makes it fast for people who can use it.
+and a color-matching game is unplayable if two colors read the same. The number is the
+primary channel; the color is what makes it fast for people who can use it.
+
+Colors are named by number rather than by hue, so a color's identity, its label, and its
+keyboard shortcut are all the same fact. The one seam: color 10 is typed with `0`,
+because that is where the digit row runs out. Its `aria-label` says so.
+
+The label must stay legible in every state, including the discounted ones below. Any
+treatment that fades a peg far enough to hide its number has removed the thing that
+carries the meaning — use desaturation and a strike instead of heavy transparency.
+
+## The player's notes
+
+Two annotation features, both of which record what the *player* believes. Neither is ever
+consulted by the game or the solver — see
+[GAME_RULES.md](GAME_RULES.md#notes-are-not-rules) for why that separation is load-bearing.
+
+### Ruling colors out
+
+Each palette swatch carries a small toggle in its corner. Pressing it rules that color
+out; pressing it again brings it back.
+
+- A ruled-out swatch stays in place, desaturated and struck through, with its number
+  still readable — you need to see *which* color you crossed off. It is never hidden or
+  removed: hiding would shift the layout and leave no way back.
+- A ruled-out color cannot be placed, by click or by its number key. That is what
+  "disabled" has to mean, and it is enforced in the reducer so the palette and the
+  keyboard cannot disagree.
+- The toggle appears on hover and on keyboard focus, and stays visible once the color is
+  ruled out.
+- Ruling a color out never touches a guess already on the board or in the draft.
+
+The one exception to "cannot be placed": the solver's last remaining code can still be
+loaded into the active row even if it contains a ruled-out color. The player's belief may
+be wrong; the sole remaining possibility is not.
+
+### Marking pegs in past guesses
+
+Every peg in a locked row is a button. Clicking cycles it:
+
+```
+unmarked  →  for sure correct (✓)  →  for sure wrong (✕)  →  unmarked
+```
+
+- **Correct** draws a ring around the peg and a ✓ badge.
+- **Wrong** desaturates it, strikes it through, and adds a ✕ badge.
+- Both states announce themselves to assistive tech, and the button's label says the peg
+  can be cycled.
+
+A one-line hint appears under the board once there is something to mark, and says plainly
+that these are the player's notes rather than the game's verdict — otherwise a ✓ could be
+mistaken for the game confirming a position, which would be a serious misread.
+
+Marks are per game and clear on `New game`.
 
 ### Submit
 
@@ -235,7 +286,7 @@ quiet. A warm off-white board on a neutral page, pegs as the only saturated elem
 empty slots reading as holes rather than outlines. Settle the exact palette by eye during
 implementation; the two things that are not free choices:
 
-- **Peg letters** must be near-black or near-white, whichever passes contrast against
+- **Peg numbers** must be near-black or near-white, whichever passes contrast against
   the swatch. This is the accessibility channel, not decoration.
 - **Numbers use tabular figures** — the count, row indices, and the `Showing X of Y`
   line all change in place, and proportional digits make them jitter.
@@ -255,4 +306,4 @@ Motion is minimal and respects `prefers-reduced-motion`. Dark mode is not in sco
 - Interactive elements are ≥ 44 px on touch: palette buttons, active-row slots, the
   disclosure control, and the submit and `New game` buttons. Locked-row pegs are not
   interactive and may be smaller — which is what makes a 20-row board fit.
-- Text meets WCAG AA against its background; peg letters meet AA against their swatch.
+- Text meets WCAG AA against its background; peg numbers meet AA against their swatch.

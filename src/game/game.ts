@@ -1,7 +1,7 @@
 import { spaceSize } from './codes';
 import { scoreGuess } from './feedback';
 import { strideSample } from './solve';
-import type { Code, Color, Config, GameState, Solver } from './types';
+import type { Code, Color, Config, GameState, Mark, Solver } from './types';
 
 export const DEFAULT_CONFIG: Config = { colors: 6, slots: 4, attempts: 10 };
 
@@ -27,6 +27,7 @@ function startGame(gameId: number, config: Config, rng: () => number): GameState
     secret: drawSecret(config, rng),
     turns: [],
     draft: new Array(config.slots).fill(null),
+    notes: { ruledOut: new Array(config.colors).fill(false), marks: {} },
     solver: seedSolver(config),
     status: 'playing',
   };
@@ -51,9 +52,35 @@ export function setPendingConfig(state: GameState, patch: Partial<Config>): Game
 
 export function placeColor(state: GameState, slot: number, color: Color): GameState {
   if (state.status !== 'playing') return state;
+  // A ruled-out color is refused here rather than in the UI, so the palette and the
+  // keyboard cannot disagree about it.
+  if (state.notes.ruledOut[color]) return state;
   const draft = [...state.draft];
   draft[slot] = color;
   return { ...state, draft };
+}
+
+/** Mark a color as no longer worth considering, or bring it back. */
+export function toggleRuledOut(state: GameState, color: Color): GameState {
+  const ruledOut = [...state.notes.ruledOut];
+  ruledOut[color] = !ruledOut[color];
+  return { ...state, notes: { ...state.notes, ruledOut } };
+}
+
+/** Cycle a peg in a past guess: unmarked -> for sure correct -> for sure wrong. */
+export function cycleMark(state: GameState, turn: number, slot: number): GameState {
+  const key = `${turn}:${slot}`;
+  const marks = { ...state.notes.marks };
+
+  if (marks[key] === undefined) marks[key] = 'correct';
+  else if (marks[key] === 'correct') marks[key] = 'wrong';
+  else delete marks[key];
+
+  return { ...state, notes: { ...state.notes, marks } };
+}
+
+export function markAt(state: GameState, turn: number, slot: number): Mark | undefined {
+  return state.notes.marks[`${turn}:${slot}`];
 }
 
 export function clearSlot(state: GameState, slot: number): GameState {

@@ -4,8 +4,8 @@ import { SetupPanel } from './SetupPanel';
 import { SolverPanel } from './SolverPanel';
 import { Peg, codeLabel } from './Peg';
 import {
-  applyScan, clearSlot, createInitialState, newGame, placeColor,
-  setDraft, setPendingConfig, submitGuess,
+  applyScan, clearSlot, createInitialState, cycleMark, newGame, placeColor,
+  setDraft, setPendingConfig, submitGuess, toggleRuledOut,
 } from '../game/game';
 import type { ScanReply, ScanRequest } from '../game/cache';
 import type { Code, Color, Config, GameState } from '../game/types';
@@ -17,6 +17,8 @@ type Action =
   | { type: 'submit' }
   | { type: 'newGame' }
   | { type: 'setPending'; patch: Partial<Config> }
+  | { type: 'cycleMark'; turn: number; slot: number }
+  | { type: 'toggleRuledOut'; color: Color }
   | { type: 'scan'; reply: ScanReply };
 
 function reducer(state: GameState, action: Action): GameState {
@@ -27,6 +29,8 @@ function reducer(state: GameState, action: Action): GameState {
     case 'submit': return submitGuess(state);
     case 'newGame': return newGame(state);
     case 'setPending': return setPendingConfig(state, action.patch);
+    case 'cycleMark': return cycleMark(state, action.turn, action.slot);
+    case 'toggleRuledOut': return toggleRuledOut(state, action.color);
     case 'scan':
       return applyScan(state, action.reply, action.reply.turnsCovered, action.reply.gameId);
   }
@@ -91,6 +95,8 @@ export function App() {
             onPlace={(slot, color) => dispatch({ type: 'place', slot, color })}
             onClear={(slot) => dispatch({ type: 'clear', slot })}
             onSubmit={() => dispatch({ type: 'submit' })}
+            onCycleMark={(turn, slot) => dispatch({ type: 'cycleMark', turn, slot })}
+            onToggleRuledOut={(color) => dispatch({ type: 'toggleRuledOut', color })}
           />
 
           {over && (

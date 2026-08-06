@@ -20,6 +20,16 @@ npm run build    # typecheck + production build
 Play with the mouse or entirely from the keyboard: `1`–`9`/`0` place colors, arrows move
 between slots, `Backspace` clears, `Enter` submits.
 
+**Keeping notes.** Cross a color off with the toggle on its swatch and it can no longer
+be played; click it again to bring it back. Click any peg in a past guess to cycle it
+through *for sure correct* → *for sure wrong* → unmarked.
+
+Those notes are yours, not the game's. The possible-codes count is computed from feedback
+alone and never sees them — so if a code you've ruled out is still listed as possible,
+the evidence disagrees with your deduction. That separation is what keeps the count
+trustworthy: a mistaken note allowed to filter the candidates could quietly eliminate the
+right answer.
+
 ## Documents
 
 | Document | What's in it |

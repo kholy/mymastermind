@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   createInitialState, newGame, setPendingConfig, placeColor, clearSlot,
   submitGuess, applyScan, canSubmit, isSolverStale,
+  toggleRuledOut, cycleMark, markAt, setDraft,
 } from './game';
 import { spaceSize } from './codes';
 import type { Config, GameState } from './types';
@@ -163,6 +164,89 @@ describe('placeColor / clearSlot', () => {
     expect(state.draft[2]).toBe(5);
     state = clearSlot(state, 2);
     expect(state.draft[2]).toBeNull();
+  });
+});
+
+describe('ruling colors out', () => {
+  it('starts with nothing ruled out, sized to the config', () => {
+    const state = createInitialState(cfg(8, 4, 10));
+    expect(state.notes.ruledOut).toEqual(new Array(8).fill(false));
+  });
+
+  it('toggles a color off and back on', () => {
+    let state = toggleRuledOut(createInitialState(cfg(6, 4, 10)), 2);
+    expect(state.notes.ruledOut[2]).toBe(true);
+    state = toggleRuledOut(state, 2);
+    expect(state.notes.ruledOut[2]).toBe(false);
+  });
+
+  it('refuses to place a ruled-out color', () => {
+    // Enforced in the reducer, so the palette and the keyboard cannot disagree.
+    const state = toggleRuledOut(createInitialState(cfg(6, 4, 10)), 3);
+    expect(placeColor(state, 0, 3)).toBe(state);
+    expect(placeColor(state, 0, 4).draft[0]).toBe(4);
+  });
+
+  it('still lets the solver hand over a code containing a ruled-out color', () => {
+    // The player's belief may be wrong; the one remaining possibility is not.
+    const state = toggleRuledOut(createInitialState(cfg(6, 4, 10)), 3);
+    expect(setDraft(state, [3, 3, 3, 3]).draft).toEqual([3, 3, 3, 3]);
+  });
+
+  it('clears on a new game', () => {
+    const state = toggleRuledOut(createInitialState(cfg(6, 4, 10)), 1);
+    expect(newGame(state).notes.ruledOut).toEqual(new Array(6).fill(false));
+  });
+});
+
+describe('marking pegs in past guesses', () => {
+  const played = () => play(createInitialState(cfg(6, 4, 10)), [0, 1, 2, 3]);
+
+  it('cycles unmarked -> correct -> wrong -> unmarked', () => {
+    let state = played();
+    expect(markAt(state, 0, 1)).toBeUndefined();
+    state = cycleMark(state, 0, 1);
+    expect(markAt(state, 0, 1)).toBe('correct');
+    state = cycleMark(state, 0, 1);
+    expect(markAt(state, 0, 1)).toBe('wrong');
+    state = cycleMark(state, 0, 1);
+    expect(markAt(state, 0, 1)).toBeUndefined();
+  });
+
+  it('keeps marks independent per turn and slot', () => {
+    let state = cycleMark(played(), 0, 0);
+    state = cycleMark(state, 0, 2);
+    state = cycleMark(state, 0, 2);
+    expect(markAt(state, 0, 0)).toBe('correct');
+    expect(markAt(state, 0, 2)).toBe('wrong');
+    expect(markAt(state, 0, 1)).toBeUndefined();
+  });
+
+  it('does not mutate the input state', () => {
+    const before = played();
+    cycleMark(before, 0, 0);
+    expect(before.notes.marks).toEqual({});
+  });
+
+  it('clears on a new game', () => {
+    expect(newGame(cycleMark(played(), 0, 0)).notes.marks).toEqual({});
+  });
+});
+
+describe('notes never reach the solver', () => {
+  it('leaves the count untouched however the player annotates', () => {
+    // The load-bearing property: the count is derived from feedback alone. If a note
+    // could filter candidates, a mistaken one could eliminate the true secret.
+    const base = play(createInitialState(cfg(6, 4, 10)), [0, 1, 2, 3]);
+    const scanned = applyScan(base, scan(256, [1, 2, 3]), 1, base.gameId);
+
+    let annotated = scanned;
+    for (let c = 0; c < 6; c++) annotated = toggleRuledOut(annotated, c);
+    for (let s = 0; s < 4; s++) annotated = cycleMark(annotated, 0, s);
+
+    expect(annotated.solver).toEqual(scanned.solver);
+    expect(annotated.turns).toEqual(scanned.turns);
+    expect(annotated.secret).toEqual(scanned.secret);
   });
 });
 

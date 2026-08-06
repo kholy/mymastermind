@@ -1,19 +1,18 @@
-import { PALETTE } from './palette';
-import type { Color } from '../game/types';
+import { PALETTE, label } from './palette';
+import type { Color, Mark } from '../game/types';
 
 type Props = {
   color: Color | null;
   size?: 'sm' | 'md' | 'lg';
   /** Marks the slot the next keystroke will fill. */
   selected?: boolean;
+  /** The player's note about this peg. Never derived from the secret. */
+  mark?: Mark;
+  /** Ruled out by the player, so shown spent. */
+  spent?: boolean;
 };
 
-/**
- * A colored circle with its letter. The letter is not optional: ten hues cannot be made
- * reliably distinguishable under color vision deficiency, so it carries the meaning and
- * the color makes it fast.
- */
-export function Peg({ color, size = 'md', selected = false }: Props) {
+export function Peg({ color, size = 'md', selected = false, mark, spent = false }: Props) {
   if (color === null) {
     return (
       <span
@@ -23,17 +22,25 @@ export function Peg({ color, size = 'md', selected = false }: Props) {
     );
   }
 
-  const swatch = PALETTE[color];
+  const text = label(color);
+  const classes = [
+    'peg',
+    `peg--${size}`,
+    text.length > 1 && 'peg--wide',
+    selected && 'peg--selected',
+    spent && 'peg--spent',
+    mark && `peg--${mark}`,
+  ].filter(Boolean).join(' ');
+
   return (
-    <span
-      className={`peg peg--${size}${selected ? ' peg--selected' : ''}`}
-      style={{ background: swatch.hex, color: swatch.ink }}
-    >
-      {swatch.letter}
+    <span className={classes} style={{ background: PALETTE[color].hex, color: PALETTE[color].ink }}>
+      {text}
+      {mark && <span className="peg__mark" aria-hidden="true">{mark === 'correct' ? '✓' : '✕'}</span>}
     </span>
   );
 }
 
+/** How a code reads to a screen reader. */
 export function codeLabel(code: readonly (Color | null)[]): string {
-  return code.map((c) => (c === null ? 'empty' : PALETTE[c].name)).join(' ');
+  return code.map((c) => (c === null ? 'empty' : label(c))).join(', ');
 }

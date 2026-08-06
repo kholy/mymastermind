@@ -128,6 +128,11 @@ way — a fact written down twice is a fact that will drift.
 - **The solver must never be able to eliminate the true secret.** The invariant the whole
   feature rests on; it has a dedicated property test. If you change filtering, that test
   must still pass.
+- **The player's notes are never an input.** Ruled-out colors and correct/wrong marks are
+  beliefs and may be wrong. They must not reach `scoreGuess`, either scan function, or the
+  worker — a mistaken note allowed to filter candidates could eliminate the right answer
+  while the count still looked authoritative. Notes change what is drawn, and stop
+  `placeColor` accepting a ruled-out color. Nothing more.
 - **Never materialize the full code space.** At 10 colors × 8 slots it is 100,000,000
   codes. The solver walks the integer range and caches only the survivors. Any
   `allCodes()`-shaped function reintroduces the bug the design exists to avoid.

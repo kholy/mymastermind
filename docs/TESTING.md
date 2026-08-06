@@ -127,6 +127,28 @@ the panel has no empty state and shouldn't need one.
   the previous object must be unchanged).
 - `submitGuess` leaves `solver` untouched — scanning is not its job.
 
+### The player's notes
+
+- `newGame` starts with nothing ruled out and no marks, sized to the config, and clears
+  both when a game restarts.
+- `toggleRuledOut` flips a color off and back on.
+- `placeColor` refuses a ruled-out color and still accepts every other one. Test the
+  reducer, not the button — the whole point of enforcing it there is that the keyboard
+  path is covered too.
+- `setDraft` still accepts a code containing a ruled-out color, because the solver's sole
+  remaining possibility outranks a belief.
+- `cycleMark` runs unmarked → correct → wrong → unmarked, keeps marks independent per
+  turn and slot, and does not mutate the input state.
+
+**Property — notes never reach the solver.** Play a turn, apply a scan, then rule out
+every color and mark every peg. `solver`, `turns`, and `secret` must come back identical.
+
+This is the guard on the boundary in `GAME_RULES.md`: the solver's promise that the secret
+is always among the candidates holds only because every constraint came from real
+feedback. If a note could filter the candidate set, a mistaken one could eliminate the
+right answer while the count still read as authoritative — a failure with no visible
+symptom, which is why it gets a test rather than a comment.
+
 ### `applyScan`
 
 The ordering guarantees. This is where async bugs would otherwise live, and every case
@@ -224,7 +246,21 @@ Run against `npm run dev` before calling the UI done. Each item traces to a sect
 - [ ] Each of 2×2×1 and the maximum 10×8×20 starts and plays.
 - [ ] At 10×8×20 the page scrolls, the active row is scrolled into view after each
       submission, and the palette and submit stay reachable without hunting.
-- [ ] Every peg renders its letter; white has a visible border against the board.
+- [ ] Every peg renders its number; white has a visible border against the board.
+- [ ] At 10 colors the palette reads `1`–`10`, `10` fits inside its peg, and key `0`
+      places it.
+
+**Notes**
+- [ ] The corner toggle rules a color out and brings it back.
+- [ ] A ruled-out swatch is visibly spent but its number is still readable, and it is
+      neither hidden nor removed from the row.
+- [ ] A ruled-out color cannot be placed by clicking it **or** by pressing its number key.
+- [ ] Ruling a color out leaves the draft and all locked rows untouched.
+- [ ] Clicking a peg in a past guess cycles it correct → wrong → unmarked, and the ✓/✕
+      badges are legible at 10 × 8 peg sizes.
+- [ ] **The possible-codes count does not move when anything is ruled out or marked.**
+- [ ] The hint says the marks are the player's notes, not the game's verdict.
+- [ ] `New game` clears every mark and restores every ruled-out color.
 - [ ] Changing a dropdown mid-game does not restart the game, and does **not** change the
       palette or board — a 6-color game stays 6-color after switching the dropdown to 10.
 - [ ] The `New game` button indicates when the dropdowns differ from the running game.
@@ -263,7 +299,7 @@ Run against `npm run dev` before calling the UI done. Each item traces to a sect
 
 **Leakage**
 - [ ] With a game in progress **and the solver count above 1**, the secret appears nowhere
-      in the DOM. Search the inspector for the code's letters and for `secret`. (At a
+      in the DOM. Search the inspector for the code's numbers and for `secret`. (At a
       count of 1 the secret is shown deliberately — see `GAME_RULES.md`.)
 - [ ] The worker never receives the secret. Check the posted messages: `gameId`, `config`
       and `turns` only. Everything the solver needs is already on the board.
@@ -280,7 +316,7 @@ Run against `npm run dev` before calling the UI done. Each item traces to a sect
       it resolves.
 - [ ] Tab order matches the visual layout; focus is always visible.
 - [ ] With a screen reader, each guess announces its feedback and the remaining count.
-- [ ] Every peg shows its letter, on the board and in the solver list.
+- [ ] Every peg shows its number, on the board and in the solver list.
 - [ ] Feedback pegs read as `N exact, M partial`.
 - [ ] With `prefers-reduced-motion`, nothing animates.
 
