@@ -145,15 +145,24 @@ out; pressing it again brings it back.
   the palette stays quiet until you reach for it. **Touch devices have no hover**, so
   under `any-hover: none` it is always visible; a hover-only affordance would simply not
   exist on a phone.
-- Ruling a color out never touches a guess already on the board or in the draft.
+- Ruling a color out never alters the *data* of a guess already made, and never disturbs
+  the draft you are currently typing. It changes what is drawn, and only in the history —
+  see below.
 
 Ruling out every color is allowed and leads nowhere harmful: nothing can be placed, so
 nothing can be submitted, and un-ruling any color recovers immediately. It needs no
 guard.
 
-The one exception to "cannot be placed": the solver's last remaining code can still be
-loaded into the active row even if it contains a ruled-out color. The player's belief may
-be wrong; the sole remaining possibility is not.
+**A ruled-out color also disappears from every past guess**, leaving an empty well in
+its place. That is the point of the feature: strip out what you have dismissed and what
+remains stands out. The guess underneath is untouched — bringing the color back restores
+every peg and any mark it carried, exactly as it was.
+
+Hidden pegs are not clickable, since marking a peg you have declared absent is moot. Any
+mark already on one is preserved, not discarded.
+
+Two places deliberately do **not** hide anything: the active row, because you need to see
+what you are typing, and the end-of-game reveal, because the game is over.
 
 ### Marking pegs in past guesses
 
@@ -191,9 +200,10 @@ Always visible, always showing the count.
   opened, it stays open for the rest of the game.
 - Expanded, it lists up to 500 codes as peg rows in a scrollable box with a fixed max
   height. If more remain, a line above reads `Showing 500 of 100,000,000`.
-- At a count of 1: show that code with `This is the only possibility.` **Clicking it
-  fills the active row**, so winning from there is one click rather than eight. The
-  player still submits it — the game does not auto-win.
+- At a count of 1 the code is **not** shown, and neither is the list — see
+  [GAME_RULES.md](GAME_RULES.md#what-the-game-never-leaks). The panel says so plainly
+  rather than going blank, so the player knows the omission is deliberate:
+  `One code fits every clue. It isn't shown — that would be the answer.`
 - Before the first guess the sample is seeded without a scan, so expanding the list on a
   fresh board shows 500 codes spread across the space, not an empty box.
 
@@ -255,8 +265,7 @@ The board and solver panel remain, unchanged, for review. The only action is `Ne
 
 While the game is playable, the secret must not exist anywhere in the rendered DOM — not
 as a hidden element, a `data-` attribute, or a class name. It lives in React state only.
-The one exception is the solver's sole remaining code at a count of 1, which the visible
-board already determines; see `GAME_RULES.md`.
+This holds at every count, including 1; see `GAME_RULES.md`.
 
 ## Keyboard
 

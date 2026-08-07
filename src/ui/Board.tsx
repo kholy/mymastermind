@@ -148,6 +148,21 @@ export function Board({
                 <span className="row__index">{i + 1}</span>
                 <span className="row__pegs">
                   {turn.guess.map((c, j) => {
+                    // A ruled-out color drops out of the history, leaving an empty well.
+                    // The guess is untouched underneath — bringing the color back
+                    // restores the peg and whatever mark it carried.
+                    if (notes.ruledOut[c]) {
+                      return (
+                        <span
+                          key={j}
+                          className="slot slot--dropped"
+                          aria-label={`Guess ${i + 1}, slot ${j + 1}: color ${label(c)}, hidden — ruled out`}
+                        >
+                          <Peg color={null} />
+                        </span>
+                      );
+                    }
+
                     const mark = markAt(state, i, j);
                     return (
                       <button

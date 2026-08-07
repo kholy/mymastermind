@@ -393,6 +393,11 @@ button, select { font: inherit; color: inherit; }
 
 .slot--markable { cursor: pointer; }
 
+/* A peg hidden because its color was ruled out: an empty well, faintly ringed so the
+   row still reads as "something was here" rather than as a gap. */
+.slot--dropped { display: inline-flex; }
+.slot--dropped .peg--empty { box-shadow: inset 0 1px 2px rgba(36, 33, 29, 0.14); opacity: 0.5; }
+
 .hint--marks { margin: 0.75rem 0 0; }
 
 .chip {
@@ -549,25 +554,12 @@ button, select { font: inherit; color: inherit; }
   cursor: pointer;
 }
 
-.solver__only { margin-top: 1rem; }
-.solver__only p { margin: 0 0 0.5rem; font-size: 0.85rem; }
-
-.only__code {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  width: 100%;
-  min-height: 44px;
-  padding: 0.5rem 0.7rem;
-  border: 1px solid var(--ink);
+.solver__sole {
+  margin: 1rem 0 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px dashed var(--line);
   border-radius: var(--radius);
-  background: none;
-  cursor: pointer;
-}
-
-.only__hint {
-  margin-left: auto;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   color: var(--muted);
 }
 

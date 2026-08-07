@@ -3,18 +3,17 @@ import { Peg } from './Peg';
 import { releaseFocus } from './focus';
 import { decode, spaceSize } from '../game/codes';
 import { isSolverStale } from '../game/game';
-import type { Code, GameState } from '../game/types';
+import type { GameState } from '../game/types';
 
 type Props = {
   state: GameState;
-  onUseCode: (code: Code) => void;
 };
 
 /** Wait this long before admitting a scan is slow — below it, no spinner flashes. */
 const STALE_DELAY_MS = 200;
 
-export function SolverPanel({ state, onUseCode }: Props) {
-  const { config, solver, status } = state;
+export function SolverPanel({ state }: Props) {
+  const { config, solver } = state;
   const [expanded, setExpanded] = useState(false);
   const [showStale, setShowStale] = useState(false);
 
@@ -32,7 +31,11 @@ export function SolverPanel({ state, onUseCode }: Props) {
   }, [stale, solver.turnsCovered]);
 
   const total = spaceSize(config);
-  const only = solver.count === 1 && !stale ? decode(solver.sample[0], config) : null;
+
+  // At one possibility the remaining code IS the secret, so it is never rendered — not
+  // as a code, and not through the list either. The count still shows: knowing you have
+  // it cornered is information the board already gives you. Naming it is the game.
+  const sole = solver.count === 1;
 
   // Log scale: the space collapses by orders of magnitude, so a linear bar would sit
   // pinned at zero from the first guess onward.
@@ -63,17 +66,13 @@ export function SolverPanel({ state, onUseCode }: Props) {
         </p>
       )}
 
-      {only && (
-        <div className="solver__only">
-          <p>This is the only possibility.</p>
-          <button type="button" className="only__code" onClick={() => onUseCode(only)} onMouseUp={releaseFocus}>
-            {only.map((c, i) => <Peg key={i} color={c} size="sm" />)}
-            <span className="only__hint">{status === 'playing' ? 'Use it' : ''}</span>
-          </button>
-        </div>
+      {sole && (
+        <p className="solver__sole">
+          One code fits every clue. It isn't shown — that would be the answer.
+        </p>
       )}
 
-      {!only && (
+      {!sole && (
         <>
           <button
             type="button"

@@ -20,9 +20,13 @@ npm run build    # typecheck + production build
 Play with the mouse or entirely from the keyboard: `1`–`9`/`0` place colors, arrows move
 between slots, `Backspace` clears, `Enter` submits.
 
-**Keeping notes.** Cross a color off with the toggle on its swatch and it can no longer
-be played; click it again to bring it back. Click any peg in a past guess to cycle it
-through *for sure correct* → *for sure wrong* → unmarked.
+**Keeping notes.** Cross a color off with the toggle on its swatch: it can no longer be
+played, and it vanishes from every past guess so what remains stands out. Click the
+toggle again and every peg comes back exactly as it was. Click any peg in a past guess to
+cycle it through *for sure correct* → *for sure wrong* → unmarked.
+
+**The answer stays hidden.** When one code is all that fits, the count says `1` but the
+code itself is not shown — that would be the answer, and naming it is the game.
 
 Those notes are yours, not the game's. The possible-codes count is computed from feedback
 alone and never sees them — so if a code you've ruled out is still listed as possible,

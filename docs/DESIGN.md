@@ -91,8 +91,9 @@ solver` in `game.test.ts` pins this down by annotating everything and asserting 
 state is byte-identical.
 
 Ruling out is enforced in `placeColor` rather than by disabling the palette button, so the
-click path and the keyboard path cannot drift apart. `setDraft` deliberately does not
-check, since it carries the solver's sole remaining possibility — which outranks a belief.
+click path and the keyboard path cannot drift apart. Hiding ruled-out colors in the
+history is purely a render-time decision in `Board` — `turns` is never rewritten, which
+is what makes bringing a color back restore the pegs and their marks exactly.
 
 `solver` is a derived value kept in state because computing it is expensive and it
 arrives asynchronously — see [Solver](#solver). Note what it does *not* contain: the set
@@ -292,7 +293,6 @@ newGame(state, rng?: () => number): GameState   // uses state.pendingConfig
 setPendingConfig(state, patch: Partial<Config>): GameState
 placeColor(state, slot: number, color: Color): GameState
 clearSlot(state, slot: number): GameState
-setDraft(state, code: Code): GameState          // the solver's last possibility
 submitGuess(state): GameState
 toggleRuledOut(state, color: Color): GameState
 cycleMark(state, turn: number, slot: number): GameState

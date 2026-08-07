@@ -135,8 +135,8 @@ the panel has no empty state and shouldn't need one.
 - `placeColor` refuses a ruled-out color and still accepts every other one. Test the
   reducer, not the button — the whole point of enforcing it there is that the keyboard
   path is covered too.
-- `setDraft` still accepts a code containing a ruled-out color, because the solver's sole
-  remaining possibility outranks a belief.
+- Ruling a color out leaves `turns` referentially identical and preserves every mark, so
+  the round trip restores the board exactly.
 - `cycleMark` runs unmarked → correct → wrong → unmarked, keeps marks independent per
   turn and slot, and does not mutate the input state.
 
@@ -277,8 +277,8 @@ Run against `npm run dev` before calling the UI done. Each item traces to a sect
       the space — not an empty box, and not 500 codes sharing the same leading pegs.
 - [ ] The count drops after every guess and never increases.
 - [ ] The list is collapsed by default and stays open once opened.
-- [ ] At a count of 1, the shown code is the actual secret — verified after winning — and
-      clicking it fills the active row.
+- [ ] **At a count of 1 no code is shown**, the `Show codes` toggle is gone, and the
+      panel explains the omission instead of going blank.
 - [ ] The `Narrowing…` treatment is never seen at 6×4: scans finish well inside the
       200 ms threshold, so no spinner should ever flash.
 
@@ -302,9 +302,9 @@ Run against `npm run dev` before calling the UI done. Each item traces to a sect
 - [ ] The list shows `Showing 500 of …` while the count is large.
 
 **Leakage**
-- [ ] With a game in progress **and the solver count above 1**, the secret appears nowhere
-      in the DOM. Search the inspector for the code's numbers and for `secret`. (At a
-      count of 1 the secret is shown deliberately — see `GAME_RULES.md`.)
+- [ ] With a game in progress the secret appears nowhere in the DOM. Search the
+      inspector for the code's numbers and for `secret`. (Including at a
+      count of 1 it is withheld too — search then, since that is when it would leak.)
 - [ ] The worker never receives the secret. Check the posted messages: `gameId`, `config`
       and `turns` only. Everything the solver needs is already on the board.
 

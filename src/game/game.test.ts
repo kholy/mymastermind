@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   createInitialState, newGame, setPendingConfig, placeColor, clearSlot,
   submitGuess, applyScan, canSubmit, isSolverStale,
-  toggleRuledOut, cycleMark, markAt, setDraft,
+  toggleRuledOut, cycleMark, markAt,
 } from './game';
 import { spaceSize } from './codes';
 import type { Config, GameState } from './types';
@@ -187,10 +187,21 @@ describe('ruling colors out', () => {
     expect(placeColor(state, 0, 4).draft[0]).toBe(4);
   });
 
-  it('still lets the solver hand over a code containing a ruled-out color', () => {
-    // The player's belief may be wrong; the one remaining possibility is not.
-    const state = toggleRuledOut(createInitialState(cfg(6, 4, 10)), 3);
-    expect(setDraft(state, [3, 3, 3, 3]).draft).toEqual([3, 3, 3, 3]);
+  it('leaves past guesses and marks intact, so hiding is fully reversible', () => {
+    // Ruling a color out only hides it in the history — the guess and any mark stay put,
+    // which is what lets a change of mind restore them exactly.
+    let state = play(createInitialState(cfg(6, 4, 10)), [0, 1, 2, 3]);
+    state = cycleMark(state, 0, 2);
+    const before = state.turns;
+
+    const hidden = toggleRuledOut(state, 2);
+    expect(hidden.turns).toBe(before);
+    expect(markAt(hidden, 0, 2)).toBe('correct');
+
+    const restored = toggleRuledOut(hidden, 2);
+    expect(restored.turns).toBe(before);
+    expect(restored.notes.ruledOut[2]).toBe(false);
+    expect(markAt(restored, 0, 2)).toBe('correct');
   });
 
   it('clears on a new game', () => {

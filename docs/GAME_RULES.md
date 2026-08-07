@@ -157,17 +157,17 @@ solver panel stay on screen for review.
 ### What the game never leaks
 
 While the game is playable, the secret is never rendered and never reachable from the
-page, **with one deliberate exception**: when the solver's possible-code count reaches 1,
-that code is the secret and is shown.
+page. No exceptions: no hidden element, no `data-` attribute, no class name, nothing in
+the worker's messages, and nothing in the solver panel.
 
-That is not a leak. The possible set is derived entirely from the guesses and feedback
-already on the board, so a player with a pencil could compute it; the panel saves
-bookkeeping, it does not tell them anything they weren't told. A count of 1 means the
-board itself has already determined the answer.
+**In particular, at a count of 1 the remaining code is not shown.** It would be the
+answer. The count still appears — knowing you have it cornered is something the board
+already tells you — but naming the code is the game, and a panel that names it for you
+has ended the game instead of helping you play it.
 
-The distinction that matters: the secret is never rendered *because the game knows it*.
-It appears only where the visible board implies it. So there is no hidden element, no
-`data-` attribute, no class name, and nothing in the worker's messages.
+The list of possible codes is suppressed at that point too, not just the summary. A
+disclosure that reveals what the panel above it declines to say would be a distinction
+without a difference.
 
 ## Possible codes
 
@@ -184,7 +184,8 @@ This set is what the solver panel counts. Before the first guess it holds all
 It is derived purely from the visible board, so showing it leaks nothing the player
 couldn't compute themselves — it saves bookkeeping, it doesn't cheat.
 
-Reaching a count of 1 means the remaining code is provably the secret. The game does not
+Reaching a count of 1 means the remaining code is provably the secret, which is exactly
+why it is withheld rather than displayed. The game does not
 auto-win at that point; the player still submits it.
 
 ## Notes are not rules

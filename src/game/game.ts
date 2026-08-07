@@ -90,12 +90,6 @@ export function clearSlot(state: GameState, slot: number): GameState {
   return { ...state, draft };
 }
 
-/** Fill the whole active row at once — used by the solver panel's last remaining code. */
-export function setDraft(state: GameState, code: Code): GameState {
-  if (state.status !== 'playing') return state;
-  return { ...state, draft: [...code] };
-}
-
 export function canSubmit(state: GameState): boolean {
   return state.status === 'playing' && state.draft.every((c) => c !== null);
 }

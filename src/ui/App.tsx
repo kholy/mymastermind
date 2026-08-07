@@ -5,15 +5,14 @@ import { SolverPanel } from './SolverPanel';
 import { Peg, codeLabel } from './Peg';
 import {
   applyScan, clearSlot, createInitialState, cycleMark, newGame, placeColor,
-  setDraft, setPendingConfig, submitGuess, toggleRuledOut,
+  setPendingConfig, submitGuess, toggleRuledOut,
 } from '../game/game';
 import type { ScanReply, ScanRequest } from '../game/cache';
-import type { Code, Color, Config, GameState } from '../game/types';
+import type { Color, Config, GameState } from '../game/types';
 
 type Action =
   | { type: 'place'; slot: number; color: Color }
   | { type: 'clear'; slot: number }
-  | { type: 'useCode'; code: Code }
   | { type: 'submit' }
   | { type: 'newGame' }
   | { type: 'setPending'; patch: Partial<Config> }
@@ -25,7 +24,6 @@ function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
     case 'place': return placeColor(state, action.slot, action.color);
     case 'clear': return clearSlot(state, action.slot);
-    case 'useCode': return setDraft(state, action.code);
     case 'submit': return submitGuess(state);
     case 'newGame': return newGame(state);
     case 'setPending': return setPendingConfig(state, action.patch);
@@ -113,7 +111,7 @@ export function App() {
           )}
         </section>
 
-        <SolverPanel state={state} onUseCode={(code) => dispatch({ type: 'useCode', code })} />
+        <SolverPanel state={state} />
       </main>
     </div>
   );
