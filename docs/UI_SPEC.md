@@ -41,8 +41,10 @@ pretend otherwise. **The page scrolls.** What must hold instead:
 - The active row is scrolled into view after each submission.
 - The palette and submit button are always reachable — they stay pinned below the board
   rather than sitting at the bottom of a long scroll.
-- Locked rows may shrink to fit; they are read, not touched. The active row's slots and
-  the palette buttons keep their full touch targets.
+- Every row renders at the same peg size, active or not, so the board reads as one grid
+  with aligned columns rather than a bulge at the row you happen to be on.
+- The palette buttons keep their full 44 px touch target. They are the input control —
+  slots are for correcting a specific position, which is the rarer act.
 
 ## The board
 
@@ -322,7 +324,11 @@ Motion is minimal and respects `prefers-reduced-motion`. Dark mode is not in sco
   is seconds away, so a single announcement would either stall or quote the previous
   turn's number as if it were current. In small configs the two coalesce naturally.
 - Win/loss announces assertively.
-- Interactive elements are ≥ 44 px on touch: palette buttons, active-row slots, the
-  disclosure control, and the submit and `New game` buttons. Locked-row pegs are not
-  interactive and may be smaller — which is what makes a 20-row board fit.
+- Interactive elements are ≥ 44 px on touch: palette buttons, the disclosure control,
+  and the submit and `New game` buttons.
+- Board slots are the deliberate exception. They match the peg size of every other row,
+  which is what keeps the grid uniform and lets 20 rows fit, and at 8 slots a 44 px slot
+  would not fit a narrow viewport anyway. Nothing requires tapping a slot: colors are
+  placed from the palette and advance on their own, and the keyboard covers every slot
+  action. Tapping one is a shortcut, not the only path.
 - Text meets WCAG AA against its background; peg numbers meet AA against their swatch.

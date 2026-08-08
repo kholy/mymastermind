@@ -201,7 +201,7 @@ export function Board({
                       onClick={() => clickSlot(j)}
                       onMouseUp={releaseFocus}
                     >
-                      <Peg color={c} size="lg" selected={j === selected} />
+                      <Peg color={c} selected={j === selected} />
                     </button>
                   ))}
                 </span>

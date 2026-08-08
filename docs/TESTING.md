@@ -326,7 +326,7 @@ Run against `npm run dev` before calling the UI done. Each item traces to a sect
 
 **Responsive**
 - [ ] At 375 px wide the solver panel stacks below the board and nothing overflows.
-- [ ] At 375 px, a 10×8×20 game is still playable: palette buttons and active-row slots
-      keep ≥44 px targets, locked-row pegs shrink, and nothing overflows horizontally.
-      This is the tightest layout the app allows.
+- [ ] At 375 px, a 10×8×20 game is still playable: palette buttons keep ≥44 px targets,
+      board pegs shrink uniformly, and nothing overflows horizontally. This is the
+      tightest layout the app allows.
 - [ ] At 1920 px the board stays centered and does not stretch.
